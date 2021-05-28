@@ -36,16 +36,31 @@ class OAuth2Token {
 }
 
 /// Enum representing the current authentication status of the application.
-enum AuthenticationStatus {
-  /// The status before the true [AuthenticationStatus] has been determined.
-  initial,
-
-  /// The status when the application is not authenticated.
-  unauthenticated,
+abstract class AuthenticationState<T> {
+  /// The status before the true [AuthenticationState] has been determined.
+  factory AuthenticationState.initial() => Initial<T>();
 
   /// The status when the application is authenticated.
-  authenticated
+  factory AuthenticationState.authenticated(T token) => Authenticated<T>(token);
+
+  /// The status when the application is not authenticated.
+  factory AuthenticationState.unAuthenticated() => UnAuthenticated<T>();
 }
+
+/// The status before the true [AuthenticationState] has been determined.
+class Initial<T> implements AuthenticationState<T> {}
+
+/// The status when the application is authenticated.
+class Authenticated<T> implements AuthenticationState<T> {
+  /// token is provided when state is authenticated
+  Authenticated(this.token);
+
+  /// current token for stream event
+  final T token;
+}
+
+/// The status when the application is not authenticated.
+class UnAuthenticated<T> implements AuthenticationState<T> {}
 
 /// An interface which must be implemented to
 /// read, write, and delete the `Token`.
@@ -89,15 +104,15 @@ class InMemoryTokenStorage<T> implements TokenStorage<T> {
 /// A mixin which handles core token refresh functionality.
 /// {@endtemplate}
 mixin FreshMixin<T> {
-  AuthenticationStatus _authenticationStatus = AuthenticationStatus.initial;
+  AuthenticationState _authenticationState = AuthenticationState<T>.initial();
 
   late TokenStorage<T> _tokenStorage;
 
   T? _token;
 
-  final StreamController<AuthenticationStatus> _controller =
-      StreamController<AuthenticationStatus>.broadcast()
-        ..add(AuthenticationStatus.initial);
+  final StreamController<AuthenticationState> _controller =
+      StreamController<AuthenticationState>.broadcast()
+        ..add(AuthenticationState<T>.initial());
 
   /// Setter for the [TokenStorage] instance.
   set tokenStorage(TokenStorage<T> tokenStorage) {
@@ -106,22 +121,22 @@ mixin FreshMixin<T> {
 
   /// Returns the current token.
   Future<T?> get token async {
-    if (_authenticationStatus != AuthenticationStatus.initial) return _token;
+    if (!(_authenticationState is Initial)) return _token;
     await authenticationStatus.first;
     return _token;
   }
 
-  /// Returns a [Stream<AuthenticationStatus>] which can be used to get notified
+  /// Returns a [Stream<AuthenticationState>] which can be used to get notified
   /// of changes to the authentication state based on the presence/absence of a token.
-  Stream<AuthenticationStatus> get authenticationStatus async* {
-    yield _authenticationStatus;
+  Stream<AuthenticationState> get authenticationStatus async* {
+    yield _authenticationState;
     yield* _controller.stream;
   }
 
   /// Sets the internal [token] to the provided [token]
-  /// and updates the [AuthenticationStatus] accordingly.
+  /// and updates the [AuthenticationState] accordingly.
   ///
-  /// If the provided token is null, the [AuthenticationStatus] will be updated
+  /// If the provided token is null, the [AuthenticationState] will be updated
   /// to `unauthenticated` and the token will be removed from storage, otherwise
   /// it will be updated to `authenticated`and save to storage.
   Future<void> setToken(T? token) async {
@@ -131,19 +146,19 @@ mixin FreshMixin<T> {
   }
 
   /// Delete the storaged [token]. and emit the
-  /// `AuthenticationStatus.unauthenticated` if authenticationStatus
-  /// not is `AuthenticationStatus.unauthenticated`
+  /// `AuthenticationState.unauthenticated` if authenticationStatus
+  /// not is `AuthenticationState.unauthenticated`
   /// This method should be called when the token is no longer valid.
   Future<void> revokeToken() async {
     await _tokenStorage.delete();
-    if (_authenticationStatus != AuthenticationStatus.unauthenticated) {
-      _authenticationStatus = AuthenticationStatus.unauthenticated;
-      _controller.add(_authenticationStatus);
+    if (!(_authenticationState is UnAuthenticated)) {
+      _authenticationState = AuthenticationState<T>.unAuthenticated();
+      _controller.add(_authenticationState);
     }
   }
 
-  /// Clears token storage and updates the [AuthenticationStatus]
-  /// to [AuthenticationStatus.unauthenticated].
+  /// Clears token storage and updates the [AuthenticationState]
+  /// to [UnAuthenticated].
   Future<void> clearToken() async {
     await _tokenStorage.delete();
     _updateStatus(null);
@@ -157,16 +172,16 @@ mixin FreshMixin<T> {
   Future<void> close() => _controller.close();
 
   /// Update the internal [token] and updates the
-  /// [AuthenticationStatus] accordingly.
+  /// [AuthenticationState] accordingly.
   ///
-  /// If the provided token is null, the [AuthenticationStatus] will
-  /// be updated to `AuthenticationStatus.unauthenticated` otherwise it
-  /// will be updated to `AuthenticationStatus.authenticated`.
+  /// If the provided token is null, the [AuthenticationState] will
+  /// be updated to `AuthenticationState.unauthenticated` otherwise it
+  /// will be updated to `AuthenticationState.authenticated`.
   void _updateStatus(T? token) {
-    _authenticationStatus = token != null
-        ? AuthenticationStatus.authenticated
-        : AuthenticationStatus.unauthenticated;
+    _authenticationState = token != null
+        ? AuthenticationState<T>.authenticated(token)
+        : AuthenticationState<T>.unAuthenticated();
     _token = token;
-    _controller.add(_authenticationStatus);
+    _controller.add(_authenticationState);
   }
 }
