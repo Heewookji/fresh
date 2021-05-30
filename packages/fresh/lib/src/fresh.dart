@@ -38,13 +38,13 @@ class OAuth2Token {
 /// Enum representing the current authentication status of the application.
 abstract class AuthenticationState<T> {
   /// The status before the true [AuthenticationState] has been determined.
-  factory AuthenticationState.initial() => Initial<T>();
+  factory AuthenticationState.initial() => Initial();
 
   /// The status when the application is authenticated.
-  factory AuthenticationState.authenticated(T token) => Authenticated<T>(token);
+  factory AuthenticationState.authenticated(T token) => Authenticated(token);
 
   /// The status when the application is not authenticated.
-  factory AuthenticationState.unAuthenticated() => UnAuthenticated<T>();
+  factory AuthenticationState.unAuthenticated() => UnAuthenticated();
 }
 
 /// The status before the true [AuthenticationState] has been determined.
@@ -104,7 +104,7 @@ class InMemoryTokenStorage<T> implements TokenStorage<T> {
 /// A mixin which handles core token refresh functionality.
 /// {@endtemplate}
 mixin FreshMixin<T> {
-  AuthenticationState _authenticationState = AuthenticationState<T>.initial();
+  AuthenticationState<T> _authenticationState = AuthenticationState.initial();
 
   late TokenStorage<T> _tokenStorage;
 
@@ -128,7 +128,7 @@ mixin FreshMixin<T> {
 
   /// Returns a [Stream<AuthenticationState>] which can be used to get notified
   /// of changes to the authentication state based on the presence/absence of a token.
-  Stream<AuthenticationState> get authenticationState async* {
+  Stream<AuthenticationState<T>> get authenticationState async* {
     yield _authenticationState;
     yield* _controller.stream;
   }
