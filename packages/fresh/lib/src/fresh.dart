@@ -110,8 +110,8 @@ mixin FreshMixin<T> {
 
   T? _token;
 
-  final StreamController<AuthenticationState> _controller =
-      StreamController<AuthenticationState>.broadcast()
+  final StreamController<AuthenticationState<T>> _controller =
+      StreamController<AuthenticationState<T>>.broadcast()
         ..add(AuthenticationState<T>.initial());
 
   /// Setter for the [TokenStorage] instance.
