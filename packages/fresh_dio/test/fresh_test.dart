@@ -84,7 +84,7 @@ void main() {
           );
           await fresh.setToken(null);
           await expectLater(
-            fresh.authenticationStatus,
+            fresh.authenticationState,
             emitsInOrder(const <AuthenticationStatus>[
               AuthenticationStatus.unauthenticated,
             ]),
@@ -103,7 +103,7 @@ void main() {
           );
           await fresh.clearToken();
           await expectLater(
-            fresh.authenticationStatus,
+            fresh.authenticationState,
             emitsInOrder(const <AuthenticationStatus>[
               AuthenticationStatus.unauthenticated,
             ]),
@@ -298,7 +298,7 @@ void main() {
           httpClient: httpClient,
         );
         await expectLater(
-          fresh.authenticationStatus,
+          fresh.authenticationState,
           emitsInOrder(
             const <AuthenticationStatus>[AuthenticationStatus.authenticated],
           ),
@@ -347,7 +347,7 @@ void main() {
           },
         );
         await expectLater(
-          fresh.authenticationStatus,
+          fresh.authenticationState,
           emitsInOrder(const <AuthenticationStatus>[
             AuthenticationStatus.authenticated,
           ]),
@@ -358,7 +358,7 @@ void main() {
           ..called(1);
         final actual = result.captured.first as DioError;
         await expectLater(
-          fresh.authenticationStatus,
+          fresh.authenticationState,
           emitsInOrder(const <AuthenticationStatus>[
             AuthenticationStatus.unauthenticated,
           ]),
@@ -379,7 +379,7 @@ void main() {
           refreshToken: emptyRefreshToken,
         );
         await expectLater(
-          fresh.authenticationStatus,
+          fresh.authenticationState,
           emitsInOrder(const <AuthenticationStatus>[
             AuthenticationStatus.authenticated,
           ]),
@@ -525,7 +525,7 @@ void main() {
           httpClient: httpClient,
         );
         await expectLater(
-          fresh.authenticationStatus,
+          fresh.authenticationState,
           emitsInOrder(
             const <AuthenticationStatus>[
               AuthenticationStatus.authenticated,
@@ -568,7 +568,7 @@ void main() {
         await fresh.close();
 
         await expectLater(
-          fresh.authenticationStatus,
+          fresh.authenticationState,
           emitsInOrder(<Matcher>[
             equals(AuthenticationStatus.authenticated),
             emitsDone,

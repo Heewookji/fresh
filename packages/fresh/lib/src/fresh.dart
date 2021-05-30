@@ -116,19 +116,19 @@ mixin FreshMixin<T> {
 
   /// Setter for the [TokenStorage] instance.
   set tokenStorage(TokenStorage<T> tokenStorage) {
-    _tokenStorage = tokenStorage..read().then(_updateStatus);
+    _tokenStorage = tokenStorage..read().then(_updateState);
   }
 
   /// Returns the current token.
   Future<T?> get token async {
     if (!(_authenticationState is Initial)) return _token;
-    await authenticationStatus.first;
+    await authenticationState.first;
     return _token;
   }
 
   /// Returns a [Stream<AuthenticationState>] which can be used to get notified
   /// of changes to the authentication state based on the presence/absence of a token.
-  Stream<AuthenticationState> get authenticationStatus async* {
+  Stream<AuthenticationState> get authenticationState async* {
     yield _authenticationState;
     yield* _controller.stream;
   }
@@ -142,7 +142,7 @@ mixin FreshMixin<T> {
   Future<void> setToken(T? token) async {
     if (token == null) return clearToken();
     await _tokenStorage.write(token);
-    _updateStatus(token);
+    _updateState(token);
   }
 
   /// Delete the storaged [token]. and emit the
@@ -161,7 +161,7 @@ mixin FreshMixin<T> {
   /// to [UnAuthenticated].
   Future<void> clearToken() async {
     await _tokenStorage.delete();
-    _updateStatus(null);
+    _updateState(null);
   }
 
   /// Closes Fresh StreamController.
@@ -177,7 +177,7 @@ mixin FreshMixin<T> {
   /// If the provided token is null, the [AuthenticationState] will
   /// be updated to `AuthenticationState.unauthenticated` otherwise it
   /// will be updated to `AuthenticationState.authenticated`.
-  void _updateStatus(T? token) {
+  void _updateState(T? token) {
     _authenticationState = token != null
         ? AuthenticationState<T>.authenticated(token)
         : AuthenticationState<T>.unAuthenticated();

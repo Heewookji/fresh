@@ -41,7 +41,7 @@ class JsonplaceholderClient {
   final Dio _httpClient;
 
   Stream<AuthenticationStatus> get authenticationStatus =>
-      _fresh.authenticationStatus;
+      _fresh.authenticationState;
 
   Future<void> authenticate({
     required String username,

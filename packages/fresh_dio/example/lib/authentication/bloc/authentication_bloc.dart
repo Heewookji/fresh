@@ -13,7 +13,7 @@ class AuthenticationBloc
   AuthenticationBloc(UserRepository userRepository)
       : _userRepository = userRepository,
         super(AuthenticationUnknown()) {
-    _subscription = _userRepository.authenticationStatus.listen((status) {
+    _subscription = _userRepository.authenticationState.listen((status) {
       add(AuthenticationStatusChanged(status));
     });
   }
