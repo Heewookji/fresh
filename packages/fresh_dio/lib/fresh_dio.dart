@@ -5,7 +5,7 @@ export 'package:fresh/fresh.dart'
     show
         RevokeTokenException,
         OAuth2Token,
-        AuthenticationStatus,
+        AuthenticationState,
         TokenStorage,
         TokenHeaderBuilder,
         FreshMixin,
