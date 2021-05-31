@@ -116,7 +116,7 @@ mixin FreshMixin<T> {
 
   /// Setter for the [TokenStorage] instance.
   set tokenStorage(TokenStorage<T> tokenStorage) {
-    _tokenStorage = tokenStorage..read().then(_updateState);
+    _tokenStorage = tokenStorage;
   }
 
   /// Returns the current token.
